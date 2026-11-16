@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Portal digital da cidade: empresas, serviços, ofertas, eventos, turismo, empregos e telefones úteis em um só lugar.">
+<meta name="theme-color" content="#287DA3">
+<title>Portal da Cidade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="#app" class="sr">Pular para o conteúdo</a>
+<div id="demoBar" role="note">Protótipo funcional com banco de dados real · itens com o selo <b>Demonstração</b> são fictícios</div>
+<header id="hdr"></header>
+<main id="app" tabindex="-1"></main>
+<footer id="ftr"></footer>
+<nav id="bottomNav" aria-label="Navegação principal"></nav>
+<div id="drawer"></div>
+<div id="modalRoot"></div>
+<div id="toasts" aria-live="polite"></div>
+<script src="seed-data.js"></script>
+<script src="local-db.js"></script>
+<script src="core.js"></script>
+<script src="public.js"></script>
+<script src="panel.js"></script>
+<script src="admin.js"></script>
+<script>
+(async function boot(){
+  S.route={n:'inicio',param:null};
+  window.addEventListener('hashchange',route);
+  renderHeader();renderFooter();route();
+  setTimeout(()=>{if(!coreReady()){S.slow=true;render(false)}},10000);
+  const inFrame=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+  for(let i=0;i<(inFrame?40:3)&&!(window.claude&&window.claude.use);i++)await new Promise(r=>setTimeout(r,100));
+  S.C=window.claude;
+  if((!S.C||!S.C.use)&&window.__LOCAL_CLAUDE){S.C=window.__LOCAL_CLAUDE;S.local=true;$('#demoBar').innerHTML='Modo local · dados salvos neste navegador · itens com o selo <b>Demonstração</b> são fictícios · <a href="#inicio" style="color:#ffd2a8" onclick="if(confirm(\'Apagar os dados locais e restaurar a demonstração?\'))window.__resetLocalDb();return false">restaurar demonstração</a>'}
+  if(!S.C||!S.C.use){S.noDb=true;S.userResolved=true;$('#demoBar').innerHTML='Visualização sem banco de dados — abra o portal pelo seu link para usar todas as funções.';render(false);return}
+  try{S.user=await S.C.use('user')}catch(e){S.user=null}
+  if(S.user){try{S.uid=(await S.user.id())||null}catch(e){S.uid=null}try{S.owner=!!(await S.user.isOwner())}catch(e){}try{S.admin=S.owner||!!(await S.user.canEdit())}catch(e){}}
+  S.userResolved=true;
+  try{S.db=await S.C.use('db')}catch(e){S.db=null}
+  if(!S.db){S.noDb=true;$('#demoBar').innerHTML='Banco de dados indisponível nesta visualização — entre com sua conta para ver o conteúdo.';render(false);return}
+  startSubs();render(false);
+})();
+</script>
+</body>
+</html>
